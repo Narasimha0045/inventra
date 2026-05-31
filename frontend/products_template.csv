@@ -1,0 +1,5 @@
+name,sku,price,quantity_in_stock
+Laptop,LAP001,50000,10
+Phone,PHN001,25000,20
+Keyboard,KEY001,50
+Mouse,MOU001,500,100

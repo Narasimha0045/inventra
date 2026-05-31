@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query ,UploadFile, File ,HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.db import get_db
 from app.schemas.schemas import ProductCreate, ProductUpdate, ProductResponse
 from app.services import product_service
+import pandas as pd
+from app.models.models import Product
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -44,3 +46,56 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     """Delete a product."""
     product_service.delete_product(db, product_id)
     return {"success": True, "data": None}
+
+@router.post("/import")
+async def import_products(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+
+    df = pd.read_csv(file.file)
+
+    imported = 0
+    skipped = 0
+    errors = []
+
+    for index, row in df.iterrows():
+        try:
+            sku = str(row["sku"]).strip()
+
+            existing = (
+                db.query(Product)
+                .filter(Product.sku == sku)
+                .first()
+            )
+
+            if existing:
+                skipped += 1
+                continue
+
+            product = Product(
+                name=str(row["name"]).strip(),
+                sku=sku,
+                price=float(row["price"]),
+                quantity_in_stock=int(row["quantity_in_stock"]),
+            )
+
+            db.add(product)
+            imported += 1
+
+        except Exception as e:
+            skipped += 1
+            errors.append(f"Row {index+1}: {str(e)}")
+
+    db.commit()
+
+    return {
+        "success": True,
+        "data": {
+            "imported": imported,
+            "skipped": skipped,
+            "errors": errors,
+        },
+    }

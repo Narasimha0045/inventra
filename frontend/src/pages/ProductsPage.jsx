@@ -12,6 +12,8 @@ import DataTable from '../components/DataTable';
 import SearchBar from '../components/SearchBar';
 import ConfirmDialog from '../components/ConfirmDialog';
 import FormModal from '../components/FormModal';
+import Button from '@mui/material/Button';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 function getStockBadge(qty) {
   if (qty === 0) return <Chip label="Out of Stock" size="small" sx={{ bgcolor: '#fef2f2', color: '#dc2626', fontWeight: 600 }} />;
@@ -47,6 +49,7 @@ export default function ProductsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -113,13 +116,61 @@ export default function ProductsPage() {
     setProductToDelete(null);
   };
 
+  const handleImportProducts = async (event) => {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setUploading(true);
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/products/import`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.detail || 'Import failed');
+      }
+
+      enqueueSnackbar(
+        `Imported ${result.data.imported} products, Skipped ${result.data.skipped}`,
+        { variant: 'success' }
+      );
+
+      fetchProducts();
+    } catch (error) {
+      enqueueSnackbar(error.message || 'Import failed', {
+        variant: 'error',
+      });
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
   // Mobile card view
   if (isMobile) {
     return (
       <Box>
         <PageHeader title="Products" subtitle="Manage your product inventory" actionLabel="Add Product" onAction={handleOpenCreate} />
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 3 , display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
           <SearchBar value={search} onChange={handleSearch} placeholder="Search products..." />
+          <Button component="label" variant="outlined" startIcon={<UploadFileIcon />} disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Import CSV'}
+            <input hidden type="file" accept=".csv" onChange={handleImportProducts} />
+          </Button>
+          <Button variant="text" href="/products_template.csv" download>
+            Download Template
+          </Button>
         </Box>
         <Grid container spacing={2}>
           {products.map((p) => (
@@ -230,6 +281,14 @@ export default function ProductsPage() {
       <PageHeader title="Products" subtitle="Manage your product inventory" actionLabel="Add Product" onAction={handleOpenCreate} />
       <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <SearchBar value={search} onChange={handleSearch} placeholder="Search products..." />
+
+        <Button component="label" variant="outlined" startIcon={<UploadFileIcon />} disabled={uploading}>
+          {uploading ? 'Uploading...' : 'Import CSV'}
+          <input hidden type="file" accept=".csv" onChange={handleImportProducts} />
+        </Button>
+        <Button href="/products_template.csv" variant="text">
+          Download Template
+        </Button>
       </Box>
       <DataTable
         columns={columns}

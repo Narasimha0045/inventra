@@ -13,6 +13,8 @@ import DataTable from '../components/DataTable';
 import SearchBar from '../components/SearchBar';
 import ConfirmDialog from '../components/ConfirmDialog';
 import FormModal from '../components/FormModal';
+import Button from '@mui/material/Button';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 const columns = [
   { field: 'full_name', headerName: 'Customer' },
@@ -54,6 +56,7 @@ export default function CustomersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchCustomers();
@@ -91,6 +94,46 @@ export default function CustomersPage() {
     }
     setDeleteDialogOpen(false);
     setCustomerToDelete(null);
+  };
+  const handleImportCustomers = async (event) => {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setUploading(true);
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/customers/import`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.detail || 'Import failed');
+      }
+
+      enqueueSnackbar(
+        `Imported ${result.data.imported} customers, Skipped ${result.data.skipped}`,
+        { variant: 'success' }
+      );
+
+      fetchCustomers();
+    } catch (error) {
+      enqueueSnackbar(error.message || 'Import failed', {
+        variant: 'error',
+      });
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
   };
 
   function renderModals() {
@@ -148,6 +191,17 @@ export default function CustomersPage() {
         <PageHeader title="Customers" subtitle="Manage your customer relationships" actionLabel="Add Customer" onAction={() => { setForm(emptyForm); setModalOpen(true); }} />
         <Box sx={{ mb: 3 }}>
           <SearchBar value={search} onChange={handleSearch} placeholder="Search customers..." />
+          <Button component="label" variant="outlined" startIcon={<UploadFileIcon />} disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Import CSV'}
+            <input hidden type="file" accept=".csv" onChange={handleImportCustomers} />
+          </Button>
+          <Button
+            variant="text"
+            href="/customers_template.csv"
+            download
+          >
+            Download Template
+          </Button>
         </Box>
         <Grid container spacing={2}>
           {customers.map((c) => {
@@ -188,8 +242,15 @@ export default function CustomersPage() {
   return (
     <Box>
       <PageHeader title="Customers" subtitle="Manage your customer relationships" actionLabel="Add Customer" onAction={() => { setForm(emptyForm); setModalOpen(true); }} />
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3 , display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
         <SearchBar value={search} onChange={handleSearch} placeholder="Search customers..." />
+        <Button component="label" variant="outlined" startIcon={<UploadFileIcon />} disabled={uploading}>
+          {uploading ? 'Uploading...' : 'Import CSV'}
+          <input hidden type="file" accept=".csv" onChange={handleImportCustomers} />
+        </Button>
+        <Button variant="text" href="/customers_template.csv" download>
+          Download Template
+        </Button>
       </Box>
       <DataTable
         columns={columns}
@@ -215,7 +276,7 @@ export default function CustomersPage() {
                 </Box>
               </TableCell>
               <TableCell>
-                <Typography variant="body2" color="text.secondary">{customer.phone || '—'}</Typography>
+                <Typography variant="body2" color="text.secondary">{customer.phone || 'ΓÇö'}</Typography>
               </TableCell>
               <TableCell>
                 <Typography variant="body2" color="text.secondary">{formatDate(customer.created_at)}</Typography>
