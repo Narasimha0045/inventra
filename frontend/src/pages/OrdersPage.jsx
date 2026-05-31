@@ -310,9 +310,11 @@ export default function OrdersPage() {
                 <Typography variant="subtitle1" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                   Total
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                  {formatCurrencyCompact(orderTotal)}
-                </Typography>
+                <Tooltip title={formatCurrency(orderTotal)} arrow placement="top">
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', cursor: 'help' }}>
+                    {formatCurrencyCompact(orderTotal)}
+                  </Typography>
+                </Tooltip>
               </Box>
             </Grid>
           )}
@@ -440,9 +442,11 @@ export default function OrdersPage() {
                       <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Order #{o.id}</Typography>
                       <Typography variant="caption" color="text.secondary">{formatDate(o.created_at)}</Typography>
                     </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                      {formatCurrencyCompact(o.total_amount)}
-                    </Typography>
+                    <Tooltip title={formatCurrency(o.total_amount)} arrow placement="top">
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main', cursor: 'help' }}>
+                        {formatCurrencyCompact(o.total_amount)}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="body2" color="text.secondary">
@@ -516,9 +520,11 @@ export default function OrdersPage() {
               />
             </TableCell>
             <TableCell>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                {formatCurrencyCompact(order.total_amount)}
-              </Typography>
+              <Tooltip title={formatCurrency(order.total_amount)} arrow placement="top">
+                <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main', cursor: 'help' }}>
+                  {formatCurrencyCompact(order.total_amount)}
+                </Typography>
+              </Tooltip>
             </TableCell>
             <TableCell>
               <Typography

@@ -1,8 +1,17 @@
 import React from 'react';
-import { Card, CardContent, Box, Typography, alpha } from '@mui/material';
+import { Card, CardContent, Box, Typography, alpha, Tooltip } from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
-export default function StatCard({ title, value, subtitle, icon: Icon, color = '#6366f1', trend }) {
+export default function StatCard({ title, value, subtitle, icon: Icon, color = '#6366f1', trend, tooltip }) {
+  const valueNode = (
+    <Typography
+      variant="h4"
+      sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2, mb: 0.5, cursor: tooltip ? 'help' : 'default' }}
+    >
+      {value}
+    </Typography>
+  );
+
   return (
     <Card
       sx={{
@@ -35,12 +44,11 @@ export default function StatCard({ title, value, subtitle, icon: Icon, color = '
             >
               {title}
             </Typography>
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2, mb: 0.5 }}
-            >
-              {value}
-            </Typography>
+            {tooltip ? (
+              <Tooltip title={tooltip} arrow placement="top">
+                {valueNode}
+              </Tooltip>
+            ) : valueNode}
             {subtitle && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                 {trend && <TrendingUpIcon sx={{ fontSize: 14, color: 'success.main' }} />}

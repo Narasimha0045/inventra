@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import {
   Grid, Box, Typography, Card, CardContent, Chip, Skeleton,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  alpha, Avatar, useTheme,
+  alpha, Avatar, useTheme, Tooltip,
 } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory2Rounded';
 import PeopleIcon from '@mui/icons-material/PeopleAltRounded';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCartRounded';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoneyRounded';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupeeRounded';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useAppContext } from '../context/AppContext';
 import StatCard from '../components/StatCard';
@@ -152,8 +152,9 @@ export default function DashboardPage() {
             title="Inventory Value"
             value={formatCurrencyCompact(dashboard.inventory_value)}
             subtitle="Total stock value"
-            icon={AttachMoneyIcon}
+            icon={CurrencyRupeeIcon}
             color="#10b981"
+            tooltip={formatCurrency(dashboard.inventory_value)}
           />
         </Grid>
       </Grid>
@@ -296,9 +297,11 @@ export default function DashboardPage() {
                             </Box>
                           </TableCell>
                           <TableCell align="right">
-                            <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                              {formatCurrencyCompact(o.total_amount)}
-                            </Typography>
+                            <Tooltip title={formatCurrency(o.total_amount)} arrow placement="top">
+                              <Typography variant="body2" sx={{ fontWeight: 700, cursor: 'help' }}>
+                                {formatCurrencyCompact(o.total_amount)}
+                              </Typography>
+                            </Tooltip>
                           </TableCell>
                         </TableRow>
                       ))}
