@@ -11,6 +11,8 @@ import PeopleIcon from '@mui/icons-material/PeopleAltRounded';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCartRounded';
 import MenuIcon from '@mui/icons-material/MenuRounded';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeftRounded';
+import DarkModeIcon from '@mui/icons-material/DarkModeRounded';
+import LightModeIcon from '@mui/icons-material/LightModeRounded';
 
 const DRAWER_WIDTH = 260;
 const COLLAPSED_WIDTH = 72;
@@ -22,7 +24,10 @@ const navItems = [
   { label: 'Orders', path: '/orders', icon: ShoppingCartIcon },
 ];
 
-export default function MainLayout({ children }) {
+export default function MainLayout({ children,
+  darkMode,
+  setDarkMode,
+ }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -140,7 +145,7 @@ export default function MainLayout({ children }) {
 
       {/* Footer */}
       {(!collapsed || isMobile) && (
-        <Box sx={{ p: 2, borderTop: '1px solid #f1f5f9' }}>
+        <Box sx={{ p: 2, borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
           <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', textAlign: 'center' }}>
             Inventra v1.0.0
           </Typography>
@@ -178,8 +183,8 @@ export default function MainLayout({ children }) {
             '& .MuiDrawer-paper': {
               width: drawerWidth,
               transition: 'width 0.2s ease',
-              borderRight: '1px solid #f1f5f9',
-              backgroundColor: '#ffffff',
+              borderRight: (theme) => `1px solid ${theme.palette.divider}`,
+              backgroundColor: 'background.paper',
               overflowX: 'hidden',
             },
           }}
@@ -205,9 +210,9 @@ export default function MainLayout({ children }) {
           position="sticky"
           elevation={0}
           sx={{
-            backgroundColor: alpha('#f8f9fb', 0.8),
+            backgroundColor: alpha(theme.palette.background.default, 0.8),
             backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid #f1f5f9',
+            borderBottom: `1px solid ${theme.palette.divider}`,
             color: 'text.primary',
           }}
         >
@@ -229,6 +234,12 @@ export default function MainLayout({ children }) {
               </IconButton>
             )}
             <Box sx={{ flex: 1 }} />
+            <IconButton
+              onClick={() => setDarkMode(!darkMode)}
+              sx={{ mr: 1 }}
+            >
+              {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
             <Avatar
               sx={{
                 width: 34,

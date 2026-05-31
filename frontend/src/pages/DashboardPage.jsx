@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import {
   Grid, Box, Typography, Card, CardContent, Chip, Skeleton,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  alpha, Avatar,
+  alpha, Avatar, useTheme,
 } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory2Rounded';
 import PeopleIcon from '@mui/icons-material/PeopleAltRounded';
@@ -12,14 +12,73 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useAppContext } from '../context/AppContext';
 import StatCard from '../components/StatCard';
 
-function getStockBadge(qty) {
-  if (qty === 0) return <Chip label="Out of Stock" size="small" sx={{ bgcolor: '#fef2f2', color: '#dc2626', fontWeight: 600 }} />;
-  if (qty <= 5) return <Chip label="Low Stock" size="small" sx={{ bgcolor: '#fffbeb', color: '#d97706', fontWeight: 600 }} />;
-  return <Chip label="In Stock" size="small" sx={{ bgcolor: '#f0fdf4', color: '#16a34a', fontWeight: 600 }} />;
+function getStockBadge(qty, theme) {
+  const chipStyle = {
+    height: 20,
+    fontSize: '0.65rem',
+    fontWeight: 600,
+    borderRadius: 1.5,
+    '& .MuiChip-label': {
+      px: 0.8,
+    },
+  };
+
+  if (qty === 0) {
+    return (
+      <Chip
+        label="Out"
+        size="small"
+        sx={{
+          ...chipStyle,
+          bgcolor: alpha(theme.palette.error.main, 0.12),
+          color: 'error.main',
+        }}
+      />
+    );
+  }
+
+  if (qty <= 5) {
+    return (
+      <Chip
+        label="Low"
+        size="small"
+        sx={{
+          ...chipStyle,
+          bgcolor: alpha(theme.palette.warning.main, 0.12),
+          color: 'warning.main',
+        }}
+      />
+    );
+  }
+
+  return (
+    <Chip
+      label="In Stock"
+      size="small"
+      sx={{
+        ...chipStyle,
+        bgcolor: alpha(theme.palette.success.main, 0.12),
+        color: 'success.main',
+      }}
+    />
+  );
 }
 
 function formatCurrency(val) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val || 0);
+}
+function formatCurrencyCompact(val) {
+  if (!val) return '₹0';
+
+  if (val >= 10000000) {
+    return `₹${(val / 10000000).toFixed(2)} Cr`;
+  }
+
+  if (val >= 100000) {
+    return `₹${(val / 100000).toFixed(1)}L`;
+  }
+
+  return formatCurrency(val);
 }
 
 function formatDate(dateStr) {
@@ -27,6 +86,7 @@ function formatDate(dateStr) {
 }
 
 export default function DashboardPage() {
+  const theme = useTheme();
   const { dashboard, loading, fetchDashboard } = useAppContext();
 
   useEffect(() => {
@@ -90,7 +150,7 @@ export default function DashboardPage() {
         <Grid item xs={12} sm={6} lg={3}>
           <StatCard
             title="Inventory Value"
-            value={formatCurrency(dashboard.inventory_value)}
+            value={formatCurrencyCompact(dashboard.inventory_value)}
             subtitle="Total stock value"
             icon={AttachMoneyIcon}
             color="#10b981"
@@ -113,10 +173,10 @@ export default function DashboardPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+                    bgcolor: alpha(theme.palette.warning.main, 0.12),
                   }}
                 >
-                  <WarningAmberIcon sx={{ color: '#d97706', fontSize: 20 }} />
+                  <WarningAmberIcon sx={{ color: 'warning.main', fontSize: 20 }} />
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.95rem' }}>
@@ -155,7 +215,7 @@ export default function DashboardPage() {
                           <TableCell align="right">
                             <Typography variant="body2" sx={{ fontWeight: 700 }}>{p.quantity_in_stock}</Typography>
                           </TableCell>
-                          <TableCell align="right">{getStockBadge(p.quantity_in_stock)}</TableCell>
+                          <TableCell align="right">{getStockBadge(p.quantity_in_stock, theme)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -179,10 +239,10 @@ export default function DashboardPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+                    bgcolor: alpha(theme.palette.primary.main, 0.12),
                   }}
                 >
-                  <ShoppingCartIcon sx={{ color: '#3b82f6', fontSize: 20 }} />
+                  <ShoppingCartIcon sx={{ color: 'primary.main', fontSize: 20 }} />
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.95rem' }}>
@@ -237,7 +297,7 @@ export default function DashboardPage() {
                           </TableCell>
                           <TableCell align="right">
                             <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                              {formatCurrency(o.total_amount)}
+                              {formatCurrencyCompact(o.total_amount)}
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -263,10 +323,10 @@ export default function DashboardPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+                    bgcolor: alpha(theme.palette.success.main, 0.12),
                   }}
                 >
-                  <InventoryIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+                  <InventoryIcon sx={{ color: 'success.main', fontSize: 20 }} />
                 </Box>
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.95rem' }}>
@@ -291,11 +351,11 @@ export default function DashboardPage() {
                         sx={{
                           p: 2,
                           borderRadius: 3,
-                          border: '1px solid #f1f5f9',
+                          border: `1px solid ${theme.palette.divider}`,
                           transition: 'all 0.2s ease',
                           '&:hover': {
-                            borderColor: '#e2e8f0',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                            borderColor: theme.palette.action.focus,
+                            boxShadow: `0 2px 8px ${alpha(theme.palette.common.black, 0.06)}`,
                           },
                         }}
                       >
@@ -307,7 +367,7 @@ export default function DashboardPage() {
                           <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
                             {formatCurrency(p.price)}
                           </Typography>
-                          {getStockBadge(p.quantity_in_stock)}
+                          {getStockBadge(p.quantity_in_stock, theme)}
                         </Box>
                       </Box>
                     </Grid>

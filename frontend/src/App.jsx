@@ -1,30 +1,52 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { SnackbarProvider } from 'notistack';
-import theme from './utils/theme';
+
 import { AppProvider } from './context/AppContext';
 import MainLayout from './layouts/MainLayout';
+
 import DashboardPage from './pages/DashboardPage';
 import ProductsPage from './pages/ProductsPage';
 import CustomersPage from './pages/CustomersPage';
 import OrdersPage from './pages/OrdersPage';
 
 export default function App() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: darkMode ? 'dark' : 'light',
+          primary: {
+            main: '#6366f1',
+          },
+        },
+      }),
+    [darkMode]
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+
       <SnackbarProvider
         maxSnack={3}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
         autoHideDuration={3000}
         dense
-        style={{ fontFamily: "'Inter', sans-serif" }}
       >
         <AppProvider>
           <BrowserRouter>
-            <MainLayout>
+            <MainLayout
+              darkMode={darkMode}
+              setDarkMode={setDarkMode}
+            >
               <Routes>
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/products" element={<ProductsPage />} />

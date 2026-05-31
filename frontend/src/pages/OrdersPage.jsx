@@ -20,6 +20,19 @@ import ConfirmDialog from '../components/ConfirmDialog';
 function formatCurrency(val) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val || 0);
 }
+function formatCurrencyCompact(val) {
+  if (!val) return '₹0';
+
+  if (val >= 10000000) {
+    return `₹${(val / 10000000).toFixed(2)} Cr`;
+  }
+
+  if (val >= 100000) {
+    return `₹${(val / 100000).toFixed(1)}L`;
+  }
+
+  return formatCurrency(val);
+}
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-IN', {
@@ -162,7 +175,7 @@ export default function OrdersPage() {
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers sx={{ borderColor: '#f1f5f9', p: 3 }}>
+      <DialogContent dividers sx={{ borderColor: 'divider', p: 3 }}>
         <Grid container spacing={3}>
           {/* Customer Selection */}
           <Grid item xs={12}>
@@ -244,7 +257,7 @@ export default function OrdersPage() {
                     p: 2,
                     mb: 1.5,
                     borderRadius: 3,
-                    borderColor: '#f1f5f9',
+                    borderColor: 'divider',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 2,
@@ -263,7 +276,7 @@ export default function OrdersPage() {
                       onClick={() => handleQtyChange(idx, -1)}
                       sx={{
                         width: 32, height: 32,
-                        border: '1.5px solid #e2e8f0',
+                        border: `1.5px solid ${theme.palette.divider}`,
                         borderRadius: 2,
                       }}
                     >
@@ -277,7 +290,7 @@ export default function OrdersPage() {
                       onClick={() => handleQtyChange(idx, 1)}
                       sx={{
                         width: 32, height: 32,
-                        border: '1.5px solid #e2e8f0',
+                        border: `1.5px solid ${theme.palette.divider}`,
                         borderRadius: 2,
                       }}
                     >
@@ -298,7 +311,7 @@ export default function OrdersPage() {
                   Total
                 </Typography>
                 <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-                  {formatCurrency(orderTotal)}
+                  {formatCurrencyCompact(orderTotal)}
                 </Typography>
               </Box>
             </Grid>
@@ -342,7 +355,7 @@ export default function OrdersPage() {
                 sx={{
                   width: 40, height: 40, borderRadius: 2.5,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+                  background: alpha(theme.palette.primary.main, 0.12)
                 }}
               >
                 <ReceiptIcon sx={{ color: '#3b82f6', fontSize: 22 }} />
@@ -356,10 +369,10 @@ export default function OrdersPage() {
               <CloseIcon fontSize="small" />
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers sx={{ borderColor: '#f1f5f9', p: 3 }}>
+          <DialogContent dividers sx={{ borderColor: 'divider', p: 3 }}>
             {/* Customer Info */}
             {selectedOrder.customer && (
-              <Box sx={{ mb: 3, p: 2, borderRadius: 3, bgcolor: '#f8f9fb' }}>
+              <Box sx={{ mb: 3, p: 2, borderRadius: 3, bgcolor: 'background.default' }}>
                 <Typography variant="overline" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
                   Customer
                 </Typography>
@@ -377,7 +390,7 @@ export default function OrdersPage() {
                 key={item.id}
                 sx={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  py: 1.5, borderBottom: '1px solid #f1f5f9',
+                  py: 1.5, borderBottom: `1px solid ${theme.palette.divider}`,
                 }}
               >
                 <Box>
@@ -428,7 +441,7 @@ export default function OrdersPage() {
                       <Typography variant="caption" color="text.secondary">{formatDate(o.created_at)}</Typography>
                     </Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                      {formatCurrency(o.total_amount)}
+                      {formatCurrencyCompact(o.total_amount)}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -495,16 +508,28 @@ export default function OrdersPage() {
               <Chip
                 label={`${order.items?.length || 0} items`}
                 size="small"
-                sx={{ bgcolor: '#f1f5f9', fontWeight: 600 }}
+                sx={{
+                  bgcolor: 'action.selected',
+                  color: 'text.primary',
+                  fontWeight: 600,
+                }}
               />
             </TableCell>
             <TableCell>
               <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                {formatCurrency(order.total_amount)}
+                {formatCurrencyCompact(order.total_amount)}
               </Typography>
             </TableCell>
             <TableCell>
-              <Typography variant="body2" color="text.secondary">{formatDate(order.created_at)}</Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {formatDate(order.created_at)}
+              </Typography>
             </TableCell>
             <TableCell align="right">
               <Tooltip title="View Details">

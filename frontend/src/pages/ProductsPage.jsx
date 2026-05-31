@@ -15,10 +15,57 @@ import FormModal from '../components/FormModal';
 import Button from '@mui/material/Button';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 
-function getStockBadge(qty) {
-  if (qty === 0) return <Chip label="Out of Stock" size="small" sx={{ bgcolor: '#fef2f2', color: '#dc2626', fontWeight: 600 }} />;
-  if (qty <= 5) return <Chip label="Low Stock" size="small" sx={{ bgcolor: '#fffbeb', color: '#d97706', fontWeight: 600 }} />;
-  return <Chip label="In Stock" size="small" sx={{ bgcolor: '#f0fdf4', color: '#16a34a', fontWeight: 600 }} />;
+function getStockBadge(qty, theme) {
+  const chipStyle = {
+    height: 18,
+    fontSize: '0.6rem',
+    fontWeight: 600,
+    borderRadius: 1,
+    '& .MuiChip-label': {
+      px: 0.75,
+      py: 0,
+    },
+  };
+
+  if (qty === 0) {
+    return (
+      <Chip
+        label="Out of Stock"
+        size="small"
+        sx={{
+          ...chipStyle,
+          bgcolor: alpha(theme.palette.error.main, 0.12),
+          color: 'error.main',
+        }}
+      />
+    );
+  }
+
+  if (qty <= 5) {
+    return (
+      <Chip
+        label="Low Stock"
+        size="small"
+        sx={{
+          ...chipStyle,
+          bgcolor: alpha(theme.palette.warning.main, 0.12),
+          color: 'warning.main',
+        }}
+      />
+    );
+  }
+
+  return (
+    <Chip
+      label="In Stock"
+      size="small"
+      sx={{
+        ...chipStyle,
+        bgcolor: alpha(theme.palette.success.main, 0.12),
+        color: 'success.main',
+      }}
+    />
+  );
 }
 
 function formatCurrency(val) {
@@ -158,62 +205,6 @@ export default function ProductsPage() {
   };
 
   // Mobile card view
-  if (isMobile) {
-    return (
-      <Box>
-        <PageHeader title="Products" subtitle="Manage your product inventory" actionLabel="Add Product" onAction={handleOpenCreate} />
-        <Box sx={{ mb: 3 , display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-          <SearchBar value={search} onChange={handleSearch} placeholder="Search products..." />
-          <Button component="label" variant="outlined" startIcon={<UploadFileIcon />} disabled={uploading}>
-            {uploading ? 'Uploading...' : 'Import CSV'}
-            <input hidden type="file" accept=".csv" onChange={handleImportProducts} />
-          </Button>
-          <Button variant="text" href="/products_template.csv" download>
-            Download Template
-          </Button>
-        </Box>
-        <Grid container spacing={2}>
-          {products.map((p) => (
-            <Grid item xs={12} sm={6} key={p.id}>
-              <Card>
-                <CardContent sx={{ p: 2.5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                        {p.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">{p.sku}</Typography>
-                    </Box>
-                    {getStockBadge(p.quantity_in_stock)}
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                        {formatCurrency(p.price)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {p.quantity_in_stock} in stock
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <IconButton size="small" onClick={() => handleOpenEdit(p)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" color="error" onClick={() => { setProductToDelete(p); setDeleteDialogOpen(true); }}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-        {renderModals()}
-      </Box>
-    );
-  }
-
   function renderModals() {
     return (
       <>
@@ -276,6 +267,62 @@ export default function ProductsPage() {
     );
   }
 
+  if (isMobile) {
+    return (
+      <Box>
+        <PageHeader title="Products" subtitle="Manage your product inventory" actionLabel="Add Product" onAction={handleOpenCreate} />
+        <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+          <SearchBar value={search} onChange={handleSearch} placeholder="Search products..." />
+          <Button component="label" variant="outlined" startIcon={<UploadFileIcon />} disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Import CSV'}
+            <input hidden type="file" accept=".csv" onChange={handleImportProducts} />
+          </Button>
+          <Button variant="text" href="/products_template.csv" download>
+            Download Template
+          </Button>
+        </Box>
+        <Grid container spacing={2}>
+          {products.map((p) => (
+            <Grid item xs={12} sm={6} key={p.id}>
+              <Card>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                        {p.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">{p.sku}</Typography>
+                    </Box>
+                    {getStockBadge(p.quantity_in_stock, theme)}
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                        {formatCurrency(p.price)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {p.quantity_in_stock} in stock
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <IconButton size="small" onClick={() => handleOpenEdit(p)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" color="error" onClick={() => { setProductToDelete(p); setDeleteDialogOpen(true); }}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+        {renderModals()}
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <PageHeader title="Products" subtitle="Manage your product inventory" actionLabel="Add Product" onAction={handleOpenCreate} />
@@ -307,7 +354,7 @@ export default function ProductsPage() {
                 label={product.sku}
                 size="small"
                 variant="outlined"
-                sx={{ fontFamily: 'monospace', fontSize: '0.75rem', borderColor: '#e2e8f0' }}
+                sx={{ fontFamily: 'monospace', fontSize: '0.75rem', borderColor: 'divider',color: 'text.secondary' }}
               />
             </TableCell>
             <TableCell>
@@ -316,7 +363,7 @@ export default function ProductsPage() {
             <TableCell>
               <Typography variant="body2" sx={{ fontWeight: 700 }}>{product.quantity_in_stock}</Typography>
             </TableCell>
-            <TableCell>{getStockBadge(product.quantity_in_stock)}</TableCell>
+            <TableCell>{getStockBadge(product.quantity_in_stock, theme)}</TableCell>
             <TableCell align="right">
               <Tooltip title="Edit">
                 <IconButton size="small" onClick={() => handleOpenEdit(product)} sx={{ color: 'text.secondary' }}>

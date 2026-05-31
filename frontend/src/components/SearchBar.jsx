@@ -13,7 +13,8 @@ export default function SearchBar({ value, onChange, placeholder = 'Search...' }
       sx={{
         minWidth: 280,
         '& .MuiOutlinedInput-root': {
-          backgroundColor: '#fff',
+          backgroundColor: 'background.paper',
+          color: 'text.primary',
         },
       }}
       InputProps={{
