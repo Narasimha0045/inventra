@@ -39,54 +39,24 @@ def delete_customer(customer_id: int, db: Session = Depends(get_db)):
     """Delete a customer."""
     customer_service.delete_customer(db, customer_id)
     return {"success": True, "data": None}
-@router.post("/import")
-async def import_customers(
+
+@router.post("/import", response_model=dict)
+def import_customers(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     if not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+        raise HTTPException(
+            status_code=400,
+            detail="Only CSV files are allowed"
+        )
 
-    df = pd.read_csv(file.file)
-
-    imported = 0
-    skipped = 0
-    errors = []
-
-    for index, row in df.iterrows():
-        try:
-            email = str(row["email"]).strip()
-
-            existing = (
-                db.query(Customer)
-                .filter(Customer.email == email)
-                .first()
-            )
-
-            if existing:
-                skipped += 1
-                continue
-
-            customer = Customer(
-                full_name=str(row["full_name"]).strip(),
-                email=email,
-                phone=str(row["phone"]).strip(),
-            )
-
-            db.add(customer)
-            imported += 1
-
-        except Exception as e:
-            skipped += 1
-            errors.append(f"Row {index + 1}: {str(e)}")
-
-    db.commit()
+    result = customer_service.import_customers(
+        db=db,
+        file=file
+    )
 
     return {
         "success": True,
-        "data": {
-            "imported": imported,
-            "skipped": skipped,
-            "errors": errors,
-        },
+        "data": result
     }

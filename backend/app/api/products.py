@@ -54,48 +54,12 @@ async def import_products(
 ):
     if not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
-
-    df = pd.read_csv(file.file)
-
-    imported = 0
-    skipped = 0
-    errors = []
-
-    for index, row in df.iterrows():
-        try:
-            sku = str(row["sku"]).strip()
-
-            existing = (
-                db.query(Product)
-                .filter(Product.sku == sku)
-                .first()
-            )
-
-            if existing:
-                skipped += 1
-                continue
-
-            product = Product(
-                name=str(row["name"]).strip(),
-                sku=sku,
-                price=float(row["price"]),
-                quantity_in_stock=int(row["quantity_in_stock"]),
-            )
-
-            db.add(product)
-            imported += 1
-
-        except Exception as e:
-            skipped += 1
-            errors.append(f"Row {index+1}: {str(e)}")
-
-    db.commit()
+    result = product_service.import_products(
+        db=db,
+        file=file
+    )
 
     return {
         "success": True,
-        "data": {
-            "imported": imported,
-            "skipped": skipped,
-            "errors": errors,
-        },
+        "data": result
     }

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status , UploadFile
+import pandas as pd
 from app.models.models import Customer
 from app.schemas.schemas import CustomerCreate
 from typing import List, Optional
@@ -56,3 +57,50 @@ def delete_customer(db: Session, customer_id: int) -> None:
     customer = get_customer(db, customer_id)
     db.delete(customer)
     db.commit()
+
+def import_customers(
+    db: Session,
+    file: UploadFile
+):
+    df = pd.read_csv(file.file)
+
+    imported = 0
+    skipped = 0
+    errors = []
+
+    for index, row in df.iterrows():
+        try:
+            email = str(row["email"]).strip()
+
+            existing = (
+                db.query(Customer)
+                .filter(Customer.email == email)
+                .first()
+            )
+
+            if existing:
+                skipped += 1
+                continue
+
+            customer = Customer(
+                full_name=str(row["full_name"]).strip(),
+                email=email,
+                phone=str(row["phone"]).strip(),
+            )
+
+            db.add(customer)
+            imported += 1
+
+        except Exception as e:
+            skipped += 1
+            errors.append(
+                f"Row {index + 1}: {str(e)}"
+            )
+
+    db.commit()
+
+    return {
+        "imported": imported,
+        "skipped": skipped,
+        "errors": errors,
+    }
